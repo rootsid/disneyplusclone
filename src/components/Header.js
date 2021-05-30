@@ -1,14 +1,30 @@
-import styled from 'styled-components'
+import styled from 'styled-components';
+import { useDispatch, useSelector } from 'react-redux';
+import { useHistory } from 'react-router-dom';
 import { auth, provider } from '../firebase';
+import {selectUserName, selectUserEmail, selectUserPhoto, setUserLoginDetails} from '../features/user/userSlice';
 
 const Header = (props) => {
+    const dispatch = useDispatch()
+    const history = useHistory()
+    const username = useSelector(selectUserName)
+    const userPhoto = useSelector(selectUserPhoto)
+    const useremail = useSelector(selectUserEmail)
 
     const handleAuth = () => {
         auth.signInWithPopup(provider).then((result) => {
-            console.log(result)
+            setUser(result.user);
         }).catch((error) => {
             alert(error.message)
         });
+    };
+
+    const setUser = (user) => {
+        dispatch(setUserLoginDetails({
+            name: user.displayName,
+            email: user.email,
+            photo: user.photoURL,
+        }));
     };
 
     return(
@@ -16,6 +32,11 @@ const Header = (props) => {
             <Logo>
                 <img src="/images/logo.svg" alt=""></img>
             </Logo>
+            {
+                !username ?
+                <Login onClick={handleAuth}>Login</Login>
+                : 
+                <>
             <NavMenu>
                 <a href='/home'>
                     <img src="/images/home-icon.svg" alt="HOME" />
@@ -42,7 +63,9 @@ const Header = (props) => {
                     <span>SERIES</span>
                 </a>
             </NavMenu>
-            <Login onClick={ handleAuth }>Login</Login>
+            <UserImg src={userPhoto} alt={username} />
+            </>
+        }
         </Nav>
     );
 }
@@ -156,6 +179,10 @@ const Login = styled.a`
         background-color: #f9f9f9;
         color: #000;
     }
+`;
+
+const UserImg = styled.img`
+    height: 100%;
 `;
 
 export default Header;
